@@ -22,7 +22,6 @@
 	"runArgs":[
 		"--gpus","all",
 		"--ipc","host",
-		"--rm",
 		"--user","1000:1000",
 		"--network","host"
 	]

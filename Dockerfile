@@ -53,7 +53,7 @@ WORKDIR /home/docker
 COPY . /home/docker
 
 RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-# RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt
 
 
 CMD ["sh", "-c", "/usr/games/fortune -a | /usr/games/cowsay"]
