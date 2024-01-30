@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from net_work import *
 
 # env = gym.make("CartPole-v1")
-env = gym.make("ALE/Breakout-v5")
+env = gym.make("ALE/Breakout-v5",render_mode="human")
 # set up matplotlib
 is_ipython = 'inline' in matplotlib.get_backend()
 if is_ipython:
@@ -31,7 +31,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # EPS_DECAY controls the rate of exponential decay of epsilon, higher means a slower decay
 # TAU is the update rate of the target network
 # LR is the learning rate of the ``AdamW`` optimizer
-BATCH_SIZE = 128
+BATCH_SIZE = 16
 GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.05
@@ -43,7 +43,7 @@ LR = 1e-4
 n_actions = env.action_space.n
 # Get the number of state observations
 state, info = env.reset()
-n_observations = len(state)
+n_observations = state.shape[2]
 
 policy_net = DQN(n_observations, n_actions).to(device)
 target_net = DQN(n_observations, n_actions).to(device)
@@ -52,9 +52,10 @@ target_net.load_state_dict(policy_net.state_dict())
 optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
 memory = ReplayMemory(10000)
 
-steps_done = 0
 
 episode_durations = []
+
+steps_done = 0 
 
 if torch.cuda.is_available():
     num_episodes = 600
@@ -66,9 +67,12 @@ for i_episode in range(num_episodes):
     state, info = env.reset()
     state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
     for t in count():
-        action = select_action(state,EPS_DECAY,EPS_END,EPS_START,device,env,policy_net)
+        action = select_action(state,EPS_DECAY,EPS_END,EPS_START,device,env,policy_net,steps_done)
+        steps_done += 1
+        # print(action)
         observation, reward, terminated, truncated, _ = env.step(action.item())
         reward = torch.tensor([reward], device=device)
+        print(f"reward:{reward},    trucates:{truncated},   treminated:{terminated}\nt:{t}")
         done = terminated or truncated
 
         if terminated:
@@ -93,12 +97,16 @@ for i_episode in range(num_episodes):
             target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
         target_net.load_state_dict(target_net_state_dict)
 
+        env.render()
         if done:
             episode_durations.append(t + 1)
-            plot_durations(episode_durations,is_ipython,display,show_result=False)
+            print(f"episode_duration:{episode_durations[-1]}")
+            plot_durations(episode_durations,is_ipython,show_result=False)
             break
-
+torch.save(policy_net.state_dict(), 'policy_net.pt')
+torch.save(target_net.state_dict(),'target_net.pt')
 print('Complete')
-plot_durations(show_result=True)
+plot_durations(episode_durations,is_ipython,show_result=False)
 plt.ioff()
 plt.show()
+plt.savefig('foo.png')

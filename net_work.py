@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+from IPython import display
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
@@ -34,13 +35,22 @@ class DQN(nn.Module):
 
     def __init__(self, n_observations, n_actions):
         super(DQN, self).__init__()
-        self.layer1 = nn.Linear(n_observations, 128)
+        self.conv1 = nn.Conv2d(n_observations,8,kernel_size=3)
+        self.conv2 = nn.Conv2d(8,8,kernel_size=3)
+
+        self.layer1 = nn.Linear(257088, 128)
         self.layer2 = nn.Linear(128, 128)
         self.layer3 = nn.Linear(128, n_actions)
 
     # Called with either one element to determine next action, or a batch
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
+
+        x = x.permute(0, 3, 1, 2)
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = torch.flatten(x,start_dim=1)
+        print(x.shape)
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
         return self.layer3(x)
@@ -91,7 +101,7 @@ def optimize_model(memory,BATCH_SIZE,device,policy_net,target_net,optimizer,GAMM
     torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100)
     optimizer.step()
 
-def plot_durations(episode_durations,is_ipython,display,show_result=False):
+def plot_durations(episode_durations,is_ipython,show_result=False):
     plt.figure(1)
     durations_t = torch.tensor(episode_durations, dtype=torch.float)
     if show_result:
@@ -109,6 +119,7 @@ def plot_durations(episode_durations,is_ipython,display,show_result=False):
         plt.plot(means.numpy())
 
     plt.pause(0.001)  # pause a bit so that plots are updated
+    plt.savefig('train.png')
     if is_ipython:
         if not show_result:
             display.display(plt.gcf())
@@ -116,12 +127,10 @@ def plot_durations(episode_durations,is_ipython,display,show_result=False):
         else:
             display.display(plt.gcf())
 
-def select_action(state,EPS_DECAY,EPS_END,EPS_START,device,env,policy_net):
-    global steps_done
+def select_action(state,EPS_DECAY,EPS_END,EPS_START,device,env,policy_net,steps_done):
     sample = random.random()
     eps_threshold = EPS_END + (EPS_START - EPS_END) * \
         math.exp(-1. * steps_done / EPS_DECAY)
-    steps_done += 1
     if sample > eps_threshold:
         with torch.no_grad():
             # t.max(1) will return the largest column value of each row.
