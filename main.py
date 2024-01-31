@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import math
 import random
 import matplotlib
@@ -12,8 +12,9 @@ import torch.optim as optim
 import torch.nn.functional as F
 from net_work import *
 
-# env = gym.make("CartPole-v1")
-env = gym.make("ALE/Breakout-v5",render_mode="human")
+# env = gym.make("CartPole-v1",render_mode='human')
+# env = gym.make("ALE/Breakout-v5",render_mode="human")
+env = gym.make("ALE/Breakout-v5")
 # set up matplotlib
 is_ipython = 'inline' in matplotlib.get_backend()
 if is_ipython:
@@ -31,7 +32,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # EPS_DECAY controls the rate of exponential decay of epsilon, higher means a slower decay
 # TAU is the update rate of the target network
 # LR is the learning rate of the ``AdamW`` optimizer
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.05
@@ -50,7 +51,7 @@ target_net = DQN(n_observations, n_actions).to(device)
 target_net.load_state_dict(policy_net.state_dict())
 
 optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
-memory = ReplayMemory(10000)
+memory = ReplayMemory(4096)
 
 
 episode_durations = []
@@ -58,7 +59,7 @@ episode_durations = []
 steps_done = 0 
 
 if torch.cuda.is_available():
-    num_episodes = 600
+    num_episodes = 10000
 else:
     num_episodes = 50
 
@@ -97,7 +98,7 @@ for i_episode in range(num_episodes):
             target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
         target_net.load_state_dict(target_net_state_dict)
 
-        env.render()
+        # env.render()
         if done:
             episode_durations.append(t + 1)
             print(f"episode_duration:{episode_durations[-1]}")
@@ -110,3 +111,17 @@ plot_durations(episode_durations,is_ipython,show_result=False)
 plt.ioff()
 plt.show()
 plt.savefig('foo.png')
+
+
+# apt-get install -y  \
+#     build-essential \
+#     cmake \
+#     git \
+#     libglib2.0-0 \
+#     ca-certificates \
+#     wget \
+#     curl \
+#     libffi-dev \
+#     libssl-dev \
+#     zlib1g-dev \
+#     libgl1-mesa-glx\
