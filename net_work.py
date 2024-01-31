@@ -1,4 +1,3 @@
-import gym
 import math
 import random
 import matplotlib
@@ -23,7 +22,11 @@ class ReplayMemory(object):
 
     def push(self, *args):
         """Save a transition"""
-        self.memory.append(Transition(*args))
+        if torch.cuda.get_device_properties(0).total_memory - torch.cuda.memory_allocated(0):
+            self.memory.append(Transition(*args))
+        else:
+            self.memory.pop()
+            self.memory.append(Transition(*args)) 
 
     def sample(self, batch_size):
         return random.sample(self.memory, batch_size)
