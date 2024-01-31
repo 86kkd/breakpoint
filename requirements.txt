@@ -1,2 +1,2 @@
-gymnasium  
+gymnasium[atari,accept-rom-license] 
 matplotlib       
