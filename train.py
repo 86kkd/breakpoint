@@ -2,7 +2,9 @@ import torch
 from itertools import count
 from net_work import *
 
-def train(env,device,memory,policy_net,EPS_DECAY,EPS_END,EPS_START,BATCH_SIZE,GAMMA,optimizer,is_ipython,target_net,TAU):
+def train(env,device,memory,policy_net,
+          EPS_DECAY,EPS_END,EPS_START,BATCH_SIZE,GAMMA,
+          optimizer,is_ipython,target_net,TAU):
     episode_durations = []
     steps_done = 0 
 
@@ -51,3 +53,4 @@ def train(env,device,memory,policy_net,EPS_DECAY,EPS_END,EPS_START,BATCH_SIZE,GA
                 print(f"episode_duration:{episode_durations[-1]}")
                 plot_durations(episode_durations,is_ipython,show_result=False)
                 break
+    return policy_net,target_net,episode_durations
