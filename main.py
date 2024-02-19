@@ -1,7 +1,6 @@
 import gymnasium as gym
 import matplotlib
 import matplotlib.pyplot as plt
-from itertools import count
 
 import torch
 import torch.optim as optim
@@ -47,7 +46,10 @@ target_net.load_state_dict(policy_net.state_dict())
 optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
 memory = ReplayMemory(4096)
 
-train(env,device,memory,policy_net,EPS_DECAY,EPS_END,EPS_START,BATCH_SIZE,GAMMA,optimizer,is_ipython,target_net,TAU)
+policy_net,target_net,episode_durations = train(
+    env,device,memory,policy_net,
+    EPS_DECAY,EPS_END,EPS_START,BATCH_SIZE,GAMMA,
+    optimizer,is_ipython,target_net,TAU)
 
 torch.save(policy_net.state_dict(), 'policy_net.pt')
 torch.save(target_net.state_dict(),'target_net.pt')
