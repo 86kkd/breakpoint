@@ -58,17 +58,3 @@ plot_durations(episode_durations,is_ipython,show_result=False)
 plt.ioff()
 plt.show()
 plt.savefig('foo.png')
-
-
-# apt-get install -y  \
-#     build-essential \
-#     cmake \
-#     git \
-#     libglib2.0-0 \
-#     ca-certificates \
-#     wget \
-#     curl \
-#     libffi-dev \
-#     libssl-dev \
-#     zlib1g-dev \
-#     libgl1-mesa-glx\
